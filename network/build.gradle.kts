@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.hilt)
@@ -15,6 +18,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        buildConfigField("String", "FLICKR_API_KEY", getLocalApiKey())
     }
 
     buildTypes {
@@ -25,6 +30,10 @@ android {
                 "proguard-rules.pro"
             )
         }
+
+    }
+    buildFeatures {
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -54,4 +63,10 @@ dependencies {
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+fun getLocalApiKey(): String {
+    val properties = Properties()
+    properties.load(FileInputStream(File("secrets.properties")))
+    return "\"${properties.getProperty("FLICKR_API_KEY")}\""
 }
