@@ -1,7 +1,9 @@
 package com.cjapps.omada.network
 
 import com.cjapps.omada.network.models.NetworkImage
+import com.cjapps.omada.network.models.Paginated
 import com.cjapps.omada.network.models.internal.FlickrPhotoResponse
+import com.cjapps.omada.network.models.internal.toPaginatedResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -20,7 +22,7 @@ class FlickrImageService @Inject constructor(
     override suspend fun getRecentPhotos(
         page: Int,
         perPage: Int
-    ): Result<List<NetworkImage>> {
+    ): Result<Paginated<List<NetworkImage>>> {
         try {
             val response = withContext(coroutineDispatcher) {
                 httpClient.get {
@@ -31,7 +33,7 @@ class FlickrImageService @Inject constructor(
             }
             if (response.status == HttpStatusCode.OK) {
                 val result = response.body<FlickrPhotoResponse>()
-                return Result.success(listOf())
+                return Result.success(result.toPaginatedResponse())
             }
             // Could log contents from body or more details if not sensitive information in a real app
             return Result.failure(Exception("Error calling recent photos. Response: $response"))
@@ -44,7 +46,7 @@ class FlickrImageService @Inject constructor(
         searchText: String,
         page: Int,
         perPage: Int
-    ): Result<List<NetworkImage>> {
+    ): Result<Paginated<List<NetworkImage>>> {
         TODO("Not yet implemented")
     }
 }
