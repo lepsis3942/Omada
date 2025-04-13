@@ -54,8 +54,11 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.coil)
+    implementation(libs.coil.network)
     implementation(libs.hilt.android)
     implementation(libs.kotlinx.collections.immutable)
+    implementation(libs.ktor.client.android)
 
     ksp(libs.hilt.compiler)
     ksp(libs.hilt.ext.compiler)
