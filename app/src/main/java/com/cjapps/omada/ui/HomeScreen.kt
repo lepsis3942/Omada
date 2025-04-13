@@ -157,7 +157,7 @@ fun SearchInput(
             imeAction = ImeAction.Search
         ),
         keyboardActions = KeyboardActions(
-            onDone = { onSubmit() }
+            onSearch = { onSubmit() }
         ),
         trailingIcon = {
             IconButton(onClick = onSubmit)
