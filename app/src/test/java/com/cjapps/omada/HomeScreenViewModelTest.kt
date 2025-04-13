@@ -154,4 +154,41 @@ class HomeScreenViewModelTest {
         assertEquals("2", uiState.imageList.last().id)
         coVerify(exactly = 1) { mockImageRepository.getRecentPhotos(2, 25) }
     }
+
+    @Test
+    fun testDeletingSearchContentRefreshesWithRecents() = runTest {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect { }
+        }
+        coEvery { mockImageRepository.searchPhotos(any(), any(), any()) } returns Result.success(
+            Paginated<Image>(
+                page = 1,
+                pages = 1,
+                perPage = 1,
+                total = 1,
+                items = listOf(
+                    Image(
+                        id = "2",
+                        imageUrl = "url2",
+                        title = "title2",
+                        description = "desc2",
+                        dateUpload = Date(100000L)
+                    )
+                )
+            )
+        )
+
+        viewModel.updateUserSearchString("spiderman")
+        viewModel.executeSearch()
+
+        var uiState = viewModel.uiState.value
+        assertEquals("2", (uiState as HomeScreenState.ImagesLoaded).imageList.first().id)
+
+        viewModel.updateUserSearchString("")
+
+        // Content is back to recents
+        uiState = viewModel.uiState.value
+        assertEquals("1", (uiState as HomeScreenState.ImagesLoaded).imageList.first().id)
+        coVerify(exactly = 2) { mockImageRepository.getRecentPhotos(1, 25) }
+    }
 }
