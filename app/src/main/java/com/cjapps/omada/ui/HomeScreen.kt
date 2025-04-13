@@ -106,12 +106,23 @@ fun HomeScreen(
 
             is HomeScreenState.ImagesLoaded -> {
                 val uiState = uiState as HomeScreenState.ImagesLoaded
-                ImageList(
-                    images = uiState.imageList,
-                    showLoadingItem = uiState.canLoadMoreImages,
-                    endOfListReached = viewModel::loadMoreItems,
-                    imageTapped = viewModel::imageTapped
-                )
+                if (uiState.imageList.isNotEmpty()) {
+                    ImageList(
+                        images = uiState.imageList,
+                        showLoadingItem = uiState.canLoadMoreImages,
+                        endOfListReached = viewModel::loadMoreItems,
+                        imageTapped = viewModel::imageTapped
+                    )
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = "No images found")
+                    }
+                }
             }
         }
     }

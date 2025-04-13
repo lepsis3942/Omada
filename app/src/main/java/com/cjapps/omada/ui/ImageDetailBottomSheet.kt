@@ -99,6 +99,7 @@ fun ImageDetailBottomSheet(
                         modifier = Modifier.padding(end = 16.dp)
                     )
                     Text(
+                        // Normally this would be formatted in the viewmodel so more in-depth formatting and error handling can occur
                         text = DateFormat.getDateTimeInstance().format(dateUpload),
                         style = textStyle
                     )
