@@ -18,8 +18,15 @@ import javax.inject.Inject
 class HomeScreenViewModel @Inject constructor(
     private val imageRepository: IImageRepository
 ) : ViewModel() {
-    private val pageSize = 25
-    private var currentPage = 1
+    private var paginatedDataState =
+        PaginatedDataState(
+            imageList = listOf<Image>(),
+            currPageNum = 0,
+            pageSize = 25,
+            totalItems = 0,
+            dataContext = ImageListContext.Recent
+        )
+
     private val uiStateFlow: MutableStateFlow<HomeScreenState> =
         MutableStateFlow<HomeScreenState>(HomeScreenState.Loading)
     val uiState: StateFlow<HomeScreenState> = uiStateFlow.stateIn(
@@ -30,25 +37,79 @@ class HomeScreenViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val newImagesResult = imageRepository.getRecentPhotos(currentPage, pageSize)
-            val paginatedImages = newImagesResult.getOrNull()
-            if (paginatedImages == null) {
-                // TODO: display error in snackbar
-                return@launch
-            }
-            uiStateFlow.emit(
-                HomeScreenState.ImagesLoaded(
-                    paginatedImages.items.toImmutableList(),
-                    paginatedImages.items.size == paginatedImages.total
-                )
+            processNewPaginatedState(paginatedDataState.copy(currPageNum = 1))
+        }
+    }
+
+    fun loadMoreItems() {
+        if (paginatedDataState.totalItems == paginatedDataState.imageList.size) return
+        viewModelScope.launch {
+            processNewPaginatedState(
+                paginatedDataState.let {
+                    it.copy(currPageNum = it.currPageNum + 1)
+                }
             )
         }
     }
 
+    private suspend fun processNewPaginatedState(newPaginatedState: PaginatedDataState) {
+        var newState = newPaginatedState
+        if (paginatedDataState.dataContext != newState.dataContext) {
+            uiStateFlow.emit(HomeScreenState.Loading)
+            // Reset pagination state
+            newState = newState.copy(
+                imageList = listOf(),
+                currPageNum = 1,
+                totalItems = 0
+            )
+        }
+
+        val newImagesResult = when (newState.dataContext) {
+            ImageListContext.Recent -> imageRepository.getRecentPhotos(
+                newPaginatedState.currPageNum,
+                newPaginatedState.pageSize
+            )
+
+            is ImageListContext.Search -> TODO()
+        }
+
+        val paginatedImages = newImagesResult.getOrNull()
+        if (paginatedImages == null) {
+            // TODO: display error in snackbar
+            return
+        }
+        paginatedDataState = paginatedDataState.let {
+            it.copy(
+                imageList = it.imageList + paginatedImages.items,
+                currPageNum = newPaginatedState.currPageNum,
+                totalItems = paginatedImages.total,
+                dataContext = newPaginatedState.dataContext
+            )
+        }
+        uiStateFlow.emit(
+            HomeScreenState.ImagesLoaded(
+                paginatedDataState.imageList.toImmutableList(),
+                canLoadMoreImages = paginatedDataState.totalItems > paginatedDataState.imageList.size
+            )
+        )
+    }
 }
 
 sealed class HomeScreenState {
     object Loading : HomeScreenState()
     data class ImagesLoaded(val imageList: ImmutableList<Image>, val canLoadMoreImages: Boolean) :
         HomeScreenState()
+}
+
+data class PaginatedDataState(
+    val imageList: List<Image>,
+    val currPageNum: Int,
+    val pageSize: Int,
+    val totalItems: Int,
+    val dataContext: ImageListContext
+)
+
+sealed class ImageListContext {
+    object Recent : ImageListContext()
+    data class Search(val searchText: String) : ImageListContext()
 }

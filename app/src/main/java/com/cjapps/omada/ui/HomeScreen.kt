@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -75,7 +78,14 @@ fun HomeScreen(
                 CircularProgressIndicator()
             }
 
-            is HomeScreenState.ImagesLoaded -> ImageList(images = (uiState as HomeScreenState.ImagesLoaded).imageList)
+            is HomeScreenState.ImagesLoaded -> {
+                val uiState = uiState as HomeScreenState.ImagesLoaded
+                ImageList(
+                    images = uiState.imageList,
+                    showLoadingItem = uiState.canLoadMoreImages,
+                    endOfListReached = viewModel::loadMoreItems
+                )
+            }
         }
     }
 }
@@ -123,25 +133,57 @@ fun SearchInput(modifier: Modifier = Modifier, isEnabled: Boolean) {
 }
 
 @Composable
-fun ImageList(modifier: Modifier = Modifier, images: ImmutableList<Image>) {
+fun ImageList(
+    modifier: Modifier = Modifier,
+    images: ImmutableList<Image>,
+    showLoadingItem: Boolean,
+    endOfListReached: () -> Unit
+) {
+    val listSize = if (showLoadingItem) {
+        images.size + 1
+    } else {
+        images.size
+    }
+    val listState = rememberLazyGridState()
+    LaunchedEffect(listState.canScrollForward) {
+        if (!listState.canScrollForward) endOfListReached()
+    }
+
     LazyVerticalGrid(
         modifier = modifier,
         columns = GridCells.Fixed(3),
         verticalArrangement = Arrangement.spacedBy(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        state = listState
     ) {
-        items(count = images.size, key = { index -> images[index].id }) { index ->
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(images[index].imageUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = images[index].id,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(6.dp))
-            )
+        items(
+            count = listSize,
+            key = { index ->
+                if (index == images.size) -1 else images[index].id
+            }
+        ) { index ->
+            if (index != images.size) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(images[index].imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = images[index].id,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(6.dp))
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .aspectRatio(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+                }
+            }
         }
     }
 }
