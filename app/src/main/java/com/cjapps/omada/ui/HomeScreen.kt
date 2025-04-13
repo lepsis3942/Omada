@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,10 +48,18 @@ import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 fun HomeScreen(
-    modifier: Modifier
+    modifier: Modifier,
+    snackBarHostState: SnackbarHostState,
 ) {
     val viewModel = hiltViewModel<HomeScreenViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackBarState by viewModel.errorSnackBarFlow.collectAsStateWithLifecycle()
+
+    LaunchedEffect(snackBarState) {
+        if (snackBarState != null) {
+            snackBarHostState.showSnackbar("An Error Occurred")
+        }
+    }
 
     Column(
         modifier = modifier

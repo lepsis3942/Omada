@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
@@ -31,11 +33,18 @@ class HomeScreenViewModel @Inject constructor(
 
     private val uiStateFlow: MutableStateFlow<HomeScreenState> =
         MutableStateFlow<HomeScreenState>(HomeScreenState.Loading)
+    private val snackBarMessageFlow: MutableStateFlow<TimeMark?> = MutableStateFlow(null)
 
     val uiState: StateFlow<HomeScreenState> = uiStateFlow.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000L),
         initialValue = HomeScreenState.Loading
+    )
+
+    val errorSnackBarFlow: StateFlow<TimeMark?> = snackBarMessageFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = null
     )
 
     init {
@@ -110,7 +119,15 @@ class HomeScreenViewModel @Inject constructor(
 
         val paginatedImages = newImagesResult.getOrNull()
         if (paginatedImages == null) {
-            // TODO: display error in snackbar
+            snackBarMessageFlow.update { TimeSource.Monotonic.markNow() }
+            // For demo purposes just reset to previous state
+            uiStateFlow.update {
+                HomeScreenState.ImagesLoaded(
+                    imageList = paginatedDataState.imageList.toImmutableList(),
+                    canLoadMoreImages = paginatedDataState.totalItems > paginatedDataState.imageList.size,
+                    userSearchString = searchText
+                )
+            }
             return
         }
         paginatedDataState = paginatedDataState.copy(
