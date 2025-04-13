@@ -14,6 +14,10 @@ If you have any issues running the code or any questions, please do reach out to
 - My development was done on a Macbook Pro with an M2, in case there is any weirdness running this on a Windows/Linux machine
 - For simplicity and development speed I set the target and min SDK to 33, in a real app care would be taken to support older versions of Android
 
+
+https://github.com/user-attachments/assets/2b8345b2-a8bd-4913-a667-5c83fdb26413
+
+
 ## Approach
 
 - Jetpack Compose is used for UI
@@ -40,6 +44,7 @@ It is broken into the following modules:
 - A small sampling of unit testing of the viewmodel was included. Certainly would cover more in a real app. Services and repositories should be tested as well, for brevity-sake on this take home test I only added VM tests
 
 ## Things to note
+- For simplicity when the textfield is set to empty string again it auto-loads the recents. An abrupt user experience for a real production app but works for a demo app
 - I really wanted to get to implementing shared element transitions [https://developer.android.com/develop/ui/compose/animation/shared-elements](https://developer.android.com/develop/ui/compose/animation/shared-elements)] but ran out of time that I have to work on this. So I went with modal bottom sheet for detail view instead
 - Due to the nature of users uploading content to the service continuously subsequent calls to the Recents API can return duplicate images
   - For simplicity of the assignment I did not handle cleaning the data and de-duplicating the responses
