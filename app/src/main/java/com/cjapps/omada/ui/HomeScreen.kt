@@ -65,6 +65,9 @@ fun HomeScreen(
         ) {
             SearchInput(
                 modifier = Modifier.fillMaxWidth(),
+                value = (uiState as? HomeScreenState.ImagesLoaded)?.userSearchString ?: "",
+                onSubmit = viewModel::executeSearch,
+                onValueChange = viewModel::updateUserSearchString,
                 isEnabled = uiState !is HomeScreenState.Loading
             )
         }
@@ -91,7 +94,13 @@ fun HomeScreen(
 }
 
 @Composable
-fun SearchInput(modifier: Modifier = Modifier, isEnabled: Boolean) {
+fun SearchInput(
+    modifier: Modifier = Modifier,
+    value: String,
+    onValueChange: (String) -> Unit,
+    onSubmit: () -> Unit,
+    isEnabled: Boolean
+) {
     val interactionSource = remember { MutableInteractionSource() }
     val isTextFieldFocused = interactionSource.collectIsFocusedAsState()
     val submitButtonColor by animateColorAsState(
@@ -104,19 +113,19 @@ fun SearchInput(modifier: Modifier = Modifier, isEnabled: Boolean) {
     )
     OutlinedTextField(
         modifier = modifier,
-        value = "text",
+        value = value,
         placeholder = { Text(text = "Search") },
-        onValueChange = { },
+        onValueChange = onValueChange,
         singleLine = true,
         enabled = isEnabled,
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Search
         ),
         keyboardActions = KeyboardActions(
-            onDone = {}
+            onDone = { onSubmit() }
         ),
         trailingIcon = {
-            IconButton(onClick = {})
+            IconButton(onClick = onSubmit)
             {
                 Icon(
                     modifier = Modifier
@@ -156,12 +165,7 @@ fun ImageList(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         state = listState
     ) {
-        items(
-            count = listSize,
-            key = { index ->
-                if (index == images.size) -1 else images[index].id
-            }
-        ) { index ->
+        items(count = listSize) { index ->
             if (index != images.size) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)

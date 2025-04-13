@@ -36,4 +36,28 @@ internal class ImageRepository @Inject constructor(
             }
         }
     }
+
+    override suspend fun searchPhotos(
+        searchText: String,
+        page: Int,
+        perPage: Int
+    ): Result<Paginated<Image>> {
+        return withContext(coroutineDispatcher) {
+            val serviceResult =
+                imageService.getPhotosBySearch(searchText, page = page, perPage = perPage)
+            val result = serviceResult.getOrNull()
+
+            if (result == null) {
+                return@withContext Result.failure(
+                    serviceResult.exceptionOrNull() ?: UnknownErrorException()
+                )
+            }
+
+            return@withContext try {
+                Result.success(result.toPaginated { it.toImage() })
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
 }

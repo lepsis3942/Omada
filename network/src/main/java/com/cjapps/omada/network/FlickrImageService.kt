@@ -47,6 +47,23 @@ internal class FlickrImageService @Inject constructor(
         page: Int,
         perPage: Int
     ): Result<NetworkPaginated<NetworkImage>> {
-        TODO("Not yet implemented")
+        try {
+            val response = withContext(coroutineDispatcher) {
+                httpClient.get {
+                    parameter("method", "flickr.photos.search")
+                    parameter("text", searchText)
+                    parameter("page", page.toString())
+                    parameter("per_page", perPage.toString())
+                }
+            }
+            if (response.status == HttpStatusCode.OK) {
+                val result = response.body<FlickrPhotoResponse>()
+                return Result.success(result.toPaginatedResponse())
+            }
+            // Could log contents from body or more details if not sensitive information in a real app
+            return Result.failure(Exception("Error calling search photos. Response: $response"))
+        } catch (ex: Exception) {
+            return Result.failure(ex)
+        }
     }
 }
