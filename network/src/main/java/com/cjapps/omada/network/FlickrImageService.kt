@@ -1,7 +1,7 @@
 package com.cjapps.omada.network
 
 import com.cjapps.omada.network.models.NetworkImage
-import com.cjapps.omada.network.models.Paginated
+import com.cjapps.omada.network.models.NetworkPaginated
 import com.cjapps.omada.network.models.internal.FlickrPhotoResponse
 import com.cjapps.omada.network.models.internal.toPaginatedResponse
 import io.ktor.client.HttpClient
@@ -14,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class FlickrImageService @Inject constructor(
+internal class FlickrImageService @Inject constructor(
     private val httpClient: HttpClient,
     private val coroutineDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : IImageService {
@@ -22,7 +22,7 @@ class FlickrImageService @Inject constructor(
     override suspend fun getRecentPhotos(
         page: Int,
         perPage: Int
-    ): Result<Paginated<List<NetworkImage>>> {
+    ): Result<NetworkPaginated<NetworkImage>> {
         try {
             val response = withContext(coroutineDispatcher) {
                 httpClient.get {
@@ -46,7 +46,7 @@ class FlickrImageService @Inject constructor(
         searchText: String,
         page: Int,
         perPage: Int
-    ): Result<Paginated<List<NetworkImage>>> {
+    ): Result<NetworkPaginated<NetworkImage>> {
         TODO("Not yet implemented")
     }
 }

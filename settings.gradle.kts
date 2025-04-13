@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "Omada"
 include(":app")
 include(":network")
+include(":data")

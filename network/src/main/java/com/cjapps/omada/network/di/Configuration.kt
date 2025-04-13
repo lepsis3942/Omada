@@ -58,7 +58,7 @@ abstract class NetworkConfiguration {
 
     @Binds
     @Singleton
-    abstract fun bindsFlickrService(
+    internal abstract fun bindsFlickrService(
         flickrService: FlickrImageService
     ): IImageService
 }

@@ -7,4 +7,4 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 @JsonIgnoreUnknownKeys
-data class FlickrImage(val id: String, val secret: String, val server: String)
+internal data class FlickrImage(val id: String, val secret: String, val server: String)

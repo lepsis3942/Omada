@@ -4,10 +4,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class FlickrPhotoResponse(val photos: FlickrPhotoPagedResponse, val stat: String)
+internal data class FlickrPhotoResponse(val photos: FlickrPhotoPagedResponse, val stat: String)
 
 @Serializable
-data class FlickrPhotoPagedResponse(
+internal data class FlickrPhotoPagedResponse(
     val page: Int,
     val pages: Int,
     @SerialName("perpage")
