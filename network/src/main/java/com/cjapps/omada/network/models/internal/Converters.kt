@@ -17,6 +17,9 @@ internal fun FlickrImage.toNetworkImage(): NetworkImage {
     // This should be in a more configurable place but for the purposes of a demo app this should suffice
     return NetworkImage(
         id = this.id,
-        imageUrl = "https://live.staticflickr.com/${this.server}/${this.id}_${this.secret}.jpg"
+        imageUrl = "https://live.staticflickr.com/${this.server}/${this.id}_${this.secret}.jpg",
+        title = this.title,
+        description = this.description?.content,
+        dateUpload = this.dateUpload,
     )
 }

@@ -34,6 +34,7 @@ class HomeScreenViewModel @Inject constructor(
     private val uiStateFlow: MutableStateFlow<HomeScreenState> =
         MutableStateFlow<HomeScreenState>(HomeScreenState.Loading)
     private val snackBarMessageFlow: MutableStateFlow<TimeMark?> = MutableStateFlow(null)
+    private val modalBottomSheetFlow: MutableStateFlow<Image?> = MutableStateFlow(null)
 
     val uiState: StateFlow<HomeScreenState> = uiStateFlow.stateIn(
         scope = viewModelScope,
@@ -42,6 +43,12 @@ class HomeScreenViewModel @Inject constructor(
     )
 
     val errorSnackBarFlow: StateFlow<TimeMark?> = snackBarMessageFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = null
+    )
+
+    val modalBottomSheetStateFlow: StateFlow<Image?> = modalBottomSheetFlow.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000L),
         initialValue = null
@@ -89,6 +96,14 @@ class HomeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             processNewPaginatedState(paginatedDataState.copy(dataContext = ImageListContext.Search))
         }
+    }
+
+    fun imageTapped(image: Image) {
+        modalBottomSheetFlow.update { image }
+    }
+
+    fun dismissModalBottomSheet() {
+        modalBottomSheetFlow.update { null }
     }
 
     private suspend fun processNewPaginatedState(newPaginatedState: PaginatedDataState) {

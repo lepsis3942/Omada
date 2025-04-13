@@ -29,6 +29,7 @@ internal class FlickrImageService @Inject constructor(
                     parameter("method", "flickr.photos.getRecent")
                     parameter("page", page.toString())
                     parameter("per_page", perPage.toString())
+                    parameter("extras", "description,date_upload")
                 }
             }
             if (response.status == HttpStatusCode.OK) {
@@ -54,6 +55,7 @@ internal class FlickrImageService @Inject constructor(
                     parameter("text", searchText)
                     parameter("page", page.toString())
                     parameter("per_page", perPage.toString())
+                    parameter("extras", "description,date_upload")
                 }
             }
             if (response.status == HttpStatusCode.OK) {

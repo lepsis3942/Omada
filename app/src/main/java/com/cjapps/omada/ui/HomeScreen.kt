@@ -1,6 +1,7 @@
 package com.cjapps.omada.ui
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -53,12 +54,25 @@ fun HomeScreen(
 ) {
     val viewModel = hiltViewModel<HomeScreenViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // For ease of demo app used separate flows for these but I usually like to keep UI state consolidated to as few flows as possible
     val snackBarState by viewModel.errorSnackBarFlow.collectAsStateWithLifecycle()
+    val modalBottomSheetState by viewModel.modalBottomSheetStateFlow.collectAsStateWithLifecycle()
 
     LaunchedEffect(snackBarState) {
         if (snackBarState != null) {
             snackBarHostState.showSnackbar("An Error Occurred")
         }
+    }
+
+    val sheetState = modalBottomSheetState
+    if (sheetState != null) {
+        ImageDetailBottomSheet(
+            onDismissRequest = viewModel::dismissModalBottomSheet,
+            imageUrl = sheetState.imageUrl,
+            title = sheetState.title,
+            description = sheetState.description,
+            dateUpload = sheetState.dateUpload,
+        )
     }
 
     Column(
@@ -95,7 +109,8 @@ fun HomeScreen(
                 ImageList(
                     images = uiState.imageList,
                     showLoadingItem = uiState.canLoadMoreImages,
-                    endOfListReached = viewModel::loadMoreItems
+                    endOfListReached = viewModel::loadMoreItems,
+                    imageTapped = viewModel::imageTapped
                 )
             }
         }
@@ -155,7 +170,8 @@ fun ImageList(
     modifier: Modifier = Modifier,
     images: ImmutableList<Image>,
     showLoadingItem: Boolean,
-    endOfListReached: () -> Unit
+    endOfListReached: () -> Unit,
+    imageTapped: (Image) -> Unit
 ) {
     val listSize = if (showLoadingItem) {
         images.size + 1
@@ -186,6 +202,9 @@ fun ImageList(
                     modifier = Modifier
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(6.dp))
+                        .clickable {
+                            imageTapped(images[index])
+                        }
                 )
             } else {
                 Box(
